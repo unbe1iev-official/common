@@ -14,7 +14,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.validation.constraints.NotNull;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @Getter
 @Setter
@@ -30,7 +30,7 @@ public abstract class Auditable {
 
     @NotNull
     @CreatedDate
-    private LocalDateTime createdDateTime;
+    private ZonedDateTime createdDateTime;
 
     @NotNull
     @CreatedBy
@@ -38,7 +38,7 @@ public abstract class Auditable {
 
     @NotNull
     @LastModifiedDate
-    private LocalDateTime lastModifiedDateTime;
+    private ZonedDateTime lastModifiedDateTime;
 
     @NotNull
     @LastModifiedBy
