@@ -1,0 +1,9 @@
+{
+  "properties": [
+    {
+      "name": "security.permit.all.matchers",
+      "type": "java.lang.String",
+      "description": "Description for security.permit.all.matchers."
+    }
+  ]
+}
