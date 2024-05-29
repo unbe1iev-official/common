@@ -24,11 +24,11 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build --no-cache -t ${{ secrets.HARBOR_REGISTRY }}/common:1.0.0 .
+          docker build --no-cache -t ${{ secrets.HARBOR_REGISTRY }}/${{ github.event.repository.name }}:1.0.0 .
 
       - name: Push Docker image
         run: |
-          docker push ${{ secrets.HARBOR_REGISTRY }}/common:1.0.0
+          docker push ${{ secrets.HARBOR_REGISTRY }}/${{ github.event.repository.name }}:1.0.0
 
   sign:
     needs: build
@@ -40,6 +40,12 @@ jobs:
           chmod +x cosign-linux-amd64
           mv cosign-linux-amd64 /usr/local/bin/cosign
 
-      - name: Sign Docker image
+      - name: Prepare Cosign Key
         run: |
-          cosign sign --key ${{ secrets.COSIGN_KEY }} ${{ secrets.HARBOR_REGISTRY }}/common:1.0.0
+          echo "${{ secrets.COSIGN_KEY }}" > cosign.key
+
+      - name: Sign Docker image
+        env:
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+        run: |
+          cosign sign --key cosign.key ${{ secrets.HARBOR_REGISTRY }}/${{ github.event.repository.name }}:1.0.0
