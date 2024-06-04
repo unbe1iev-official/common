@@ -55,7 +55,7 @@ public class OAuth2ResourceServerSecurityConfiguration {
                         .requestMatchers(permitAllMatchers)
                         .permitAll()
                         .requestMatchers("/api/**")
-                        .hasRole("u1")
+                        .hasRole("creator")
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2

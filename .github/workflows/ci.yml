@@ -3,7 +3,7 @@ name: Build, Sign, and Deploy Common Library
 on:
   push:
     branches:
-      - dev
+      - off # dev - turn on 'dev'
 
 jobs:
   build:

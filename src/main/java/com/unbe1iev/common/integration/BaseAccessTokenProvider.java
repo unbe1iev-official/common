@@ -6,7 +6,7 @@ import org.keycloak.authorization.client.Configuration;
 
 public abstract class BaseAccessTokenProvider {
 
-    private Configuration configuration;
+    private final Configuration configuration;
 
     protected BaseAccessTokenProvider(Configuration configuration) {
         this.configuration = configuration;
@@ -15,6 +15,7 @@ public abstract class BaseAccessTokenProvider {
     public String getBearerToken() {
         AuthzClient client = AuthzClient.create(configuration);
         AccessTokenResponse accessTokenResponse = client.obtainAccessToken();
+
         return accessTokenResponse.getTokenType() + " " + accessTokenResponse.getToken();
     }
 }

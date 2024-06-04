@@ -23,6 +23,8 @@ public class DomainCheckerAspect {
     private final DomainHolder domainHolder;
     private final DomainCheckerProperties domainCheckerProperties;
 
+    private static final String DOMAIN = "unbe1iev";
+
     @Pointcut("within(@org.springframework.web.bind.annotation.RestController *)")
     public void beanAnnotatedWithRestController() {
         // pointcut definition
@@ -35,9 +37,9 @@ public class DomainCheckerAspect {
     }
 
     private void throwIfNotInDomainContext(Signature signature) {
-        if (domainIsRequired(signature)
-                && !StringUtils.hasText(domainHolder.getDomain())) {
-            throw new AccessDeniedException("Domain is required");
+        String domain = domainHolder.getDomain();
+        if (domainIsRequired(signature) && (!StringUtils.hasText(domain) || !DOMAIN.equals(domain))) {
+            throw new AccessDeniedException("Domain is required and must match the predefined domain!");
         }
     }
 
