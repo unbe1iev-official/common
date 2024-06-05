@@ -1,9 +1,9 @@
-name: Build, Sign, and Deploy Common Library
+name: Build and Sign Common Library
 
 on:
   push:
     branches:
-      - off # dev - turn on 'dev'
+      - dev # off - to turn off
 
 jobs:
   build:
