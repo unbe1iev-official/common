@@ -24,22 +24,16 @@ public class SecurityUtil {
     private static final String CLAIM_REALM_ACCESS = "realm_access";
     private static final String REALM_ACCESS_ROLES = "roles";
 
-    public static final String ROLE_SOCIAL_NET = "socialnet";
+    public static final String ANONYMOUS = "anonymous";
+    public static final String ADMIN_ROLE = "admin";
+    public static final String CREATOR_ROLE = "creator";
 
-    public static final String ANONYMOUS_USER = "anonymousUser";
-
-    private static final String PAYMENT_GATEWAY_USER = "paymentGatewayUser";
-    private static final String PAYMENT_USER = "paymentUser";
     private static final String CREATOR_USER = "creatorUser";
-    private static final String NOTIFICATION_USER = "notificationUser";
-    private static final String MAIL_SENDER_USER = "mailSenderUser";
-    private static final String LOG_USER = "logUser";
-    private static final String CONTENT_USER = "contentUser";
 
     private SecurityUtil() {
     }
 
-    public static String getLoggedUserExternalId() {
+    public static String getLoggedUserKeycloakId() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (principal instanceof Jwt jwt) {
             return jwt.getSubject();
@@ -107,7 +101,7 @@ public class SecurityUtil {
 
     private static String getLoginFromJwt(Jwt principal) {
         String preferredUsername = principal.getClaimAsString("preferred_username");
-        return preferredUsername != null ? preferredUsername : ANONYMOUS_USER;
+        return preferredUsername != null ? preferredUsername : ANONYMOUS;
     }
 
     public static String getAuthorizationToken() {
@@ -118,44 +112,8 @@ public class SecurityUtil {
         return null;
     }
 
-    public static void workAsPaymentGatewayUser() {
-        workAsUser(PAYMENT_GATEWAY_USER);
-    }
-
-    public static void workAsPaymentUser() {
-        workAsPaymentUser(null);
-    }
-
-    public static void workAsPaymentUser(String domain) {
-        workAsUser(PAYMENT_USER, domain);
-    }
-
-    public static void workAsCreatorUser() {
-        workASCreatorUser(null);
-    }
-
     public static void workASCreatorUser(String domain) {
         workAsUser(CREATOR_USER, domain);
-    }
-
-    public static void workAsNotificationUser() {
-        workAsUser(NOTIFICATION_USER);
-    }
-
-    public static void workAsMailSenderUser() {
-        workAsUser(MAIL_SENDER_USER);
-    }
-
-    public static void workAsLogUser() {
-        workAsLogUser(null);
-    }
-
-    public static void workAsLogUser(String domain) {
-        workAsUser(LOG_USER, domain);
-    }
-
-    public static void workAsContentUser() {
-        workAsUser(CONTENT_USER);
     }
 
     private static void workAsUser(String userName) {

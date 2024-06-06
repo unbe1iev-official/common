@@ -22,6 +22,9 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.unbe1iev.common.util.SecurityUtil.ADMIN_ROLE;
+import static com.unbe1iev.common.util.SecurityUtil.CREATOR_ROLE;
+
 @Configuration
 @EnableWebSecurity
 @Slf4j
@@ -55,7 +58,7 @@ public class OAuth2ResourceServerSecurityConfiguration {
                         .requestMatchers(permitAllMatchers)
                         .permitAll()
                         .requestMatchers("/api/**")
-                        .hasRole("creator")
+                        .hasAnyRole(CREATOR_ROLE, ADMIN_ROLE)
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
