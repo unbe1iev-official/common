@@ -22,6 +22,8 @@ public class SecurityUtil {
 
     public static final String X_DOMAIN_HEADER = "X-DOMAIN";
 
+    public static final String REALM_NAME = "unbe1iev";
+
     public static final String CLAIM_REALM = "realm";
     private static final String CLAIM_REALM_ACCESS = "realm_access";
     private static final String REALM_ACCESS_ROLES = "roles";
