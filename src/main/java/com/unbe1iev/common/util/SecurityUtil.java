@@ -129,7 +129,7 @@ public class SecurityUtil {
     public static Optional<String> getClientId() {
         return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
                 .filter(auth -> auth instanceof JwtAuthenticationToken)
-                .map(auth -> ((JwtAuthenticationToken) auth).getTokenAttributes().get("clientId"))
+                .map(auth -> ((JwtAuthenticationToken) auth).getTokenAttributes().get("client_id"))
                 .map(Object::toString)
                 .filter(clientId -> !clientId.isEmpty());
     }
