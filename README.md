@@ -5,7 +5,7 @@ Shared library offering common utilities, classes, and tools to enhance developm
 
 ### Technology
 - Java 22
-- Spring Boot 3.2.5
+- Spring Boot 3.3.0
 
 ### Installation
 The component needs to be built before starting other services that use it: \

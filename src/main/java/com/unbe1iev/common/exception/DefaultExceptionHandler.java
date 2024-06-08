@@ -4,11 +4,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.context.request.WebRequest;
 
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
@@ -35,8 +35,8 @@ public class DefaultExceptionHandler {
     })
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
-    public ErrorDto handleDefaultRuntimeException(WebRequest req, DefaultRuntimeException e) {
-        return processException(HttpStatus.BAD_REQUEST.value(), e, messageExtractor.getExceptionMessage(e));
+    public ErrorDto handleDefaultRuntimeException(DefaultRuntimeException e) {
+        return processException(HttpStatus.BAD_REQUEST.value(), e, messageExtractor.getExceptionMessage(e, new Object[]{}));
     }
 
     @ExceptionHandler({
@@ -44,28 +44,35 @@ public class DefaultExceptionHandler {
     })
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
-    public ErrorDto handleDefaultRuntimeException(WebRequest req, ApplicationValidationException e) {
+    public ErrorDto handleApplicationValidationException(ApplicationValidationException e) {
         return processException(HttpStatus.BAD_REQUEST.value(), e, e.getMessages());
     }
 
     @ExceptionHandler(value = NoSuchElementException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
-    public ErrorDto handleNoSuchElementException(WebRequest req, NoSuchElementException e) {
+    public ErrorDto handleNoSuchElementException(NoSuchElementException e) {
         return processException(HttpStatus.BAD_REQUEST.value(), e, messageExtractor.getExceptionMessage(e, new Object[]{e.getMessage()}));
     }
 
     @ExceptionHandler(value = AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ResponseBody
+    public ErrorDto handleAccessDeniedException(AccessDeniedException e) {
+        return processException(HttpStatus.FORBIDDEN.value(), e, messageExtractor.getExceptionMessage(e, new Object[]{e.getMessage()}));
+    }
+
+    @ExceptionHandler(value = AuthenticationException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ResponseBody
-    public ErrorDto handleNoSuchElementException(WebRequest req, AccessDeniedException e) {
+    public ErrorDto handleAuthenticationException(AuthenticationException e) {
         return processException(HttpStatus.UNAUTHORIZED.value(), e, messageExtractor.getExceptionMessage(e, new Object[]{e.getMessage()}));
     }
 
     @ExceptionHandler(value = Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ResponseBody
-    public ErrorDto handleException(WebRequest req, Exception e) {
+    public ErrorDto handleException(Exception e) {
         String[] messages;
         if (isDevelopmentMode) {
             messages = new String[]{
@@ -76,11 +83,6 @@ public class DefaultExceptionHandler {
                     messageExtractor.getMessage(INTERNAL_SERVER_ERROR_MESSAGE_CODE, new Object[]{})};
         }
         return processException(HttpStatus.INTERNAL_SERVER_ERROR.value(), e, messages);
-    }
-
-    private ErrorDto processException(int status, Exception e, String message) {
-
-        return processException(status, e, new String[]{message});
     }
 
     private ErrorDto processException(int status, Exception e, String[] messages) {
@@ -96,6 +98,5 @@ public class DefaultExceptionHandler {
                 .messages(messages)
                 .timestamp(LocalDateTime.now())
                 .build();
-
     }
 }

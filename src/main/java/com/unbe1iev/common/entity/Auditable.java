@@ -1,15 +1,11 @@
 package com.unbe1iev.common.entity;
 
+import com.unbe1iev.common.configuration.CustomAuditingEntityListener;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import org.springframework.data.annotation.CreatedBy;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedBy;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
@@ -22,25 +18,21 @@ import java.time.ZonedDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @MappedSuperclass
-@EntityListeners(AuditingEntityListener.class)
+@EntityListeners(CustomAuditingEntityListener.class)
 public abstract class Auditable {
 
     @NotNull
     private Long version;
 
     @NotNull
-    @CreatedDate
     private ZonedDateTime createdDateTime;
 
     @NotNull
-    @CreatedBy
     private String createdBy;
 
     @NotNull
-    @LastModifiedDate
     private ZonedDateTime lastModifiedDateTime;
 
     @NotNull
-    @LastModifiedBy
     private String lastModifiedBy;
 }

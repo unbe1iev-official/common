@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -25,9 +26,10 @@ import java.util.List;
 import static com.unbe1iev.common.util.SecurityUtil.ADMIN_ROLE;
 import static com.unbe1iev.common.util.SecurityUtil.CREATOR_ROLE;
 
+@Slf4j
 @Configuration
 @EnableWebSecurity
-@Slf4j
+@EnableMethodSecurity(securedEnabled = true, jsr250Enabled = true)
 public class OAuth2ResourceServerSecurityConfiguration {
 
     private final String[] permitAllMatchers;
@@ -47,34 +49,27 @@ public class OAuth2ResourceServerSecurityConfiguration {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        JwtIssuerAuthenticationManagerResolver authenticationManagerResolver = new JwtIssuerAuthenticationManagerResolver(
+                new CustomTrustedIssuerJwtAuthenticationManagerResolver(trustedIssuers::contains));
+
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
                 .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.NEVER))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/v3/api-docs/**", "/swagger-ui*/**", "/actuator/**")
-                        .permitAll()
-                        .requestMatchers(permitAllMatchers)
-                        .permitAll()
-                        .requestMatchers("/api/**")
-                        .hasAnyRole(CREATOR_ROLE, ADMIN_ROLE)
-                        .anyRequest().authenticated()
-                )
-                .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(jwt -> jwt
-                                .jwtAuthenticationConverter(new CustomJwtAuthenticationConverter())
-                        )
-                        .authenticationManagerResolver(
-                                new JwtIssuerAuthenticationManagerResolver(
-                                        new CustomTrustedIssuerJwtAuthenticationManagerResolver(
-                                                trustedIssuers::contains))));
+                        .requestMatchers("/api-docs/**", "/v3/api-docs/**", "/swagger-ui*/**", "/actuator/**").permitAll()
+                        .requestMatchers(permitAllMatchers).permitAll()
+                        .requestMatchers("/api/**").hasAnyRole(CREATOR_ROLE, ADMIN_ROLE)
+                        .anyRequest().authenticated())
+                .oauth2ResourceServer(oauth2 -> oauth2.authenticationManagerResolver(authenticationManagerResolver));
+
         return http.build();
     }
 
     @Bean
     GrantedAuthorityDefaults grantedAuthorityDefaults() {
-        return new GrantedAuthorityDefaults(""); // Remove the ROLE_ prefix
+        return new GrantedAuthorityDefaults("");
     }
 
     @Bean
@@ -82,10 +77,12 @@ public class OAuth2ResourceServerSecurityConfiguration {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:4400",
-                "https://unbe1iev.com", "https://sso.unbe1iev.com/"));
+                "https://unbe1iev.com", "https://sso.unbe1iev.com"));
         configuration.setAllowedMethods(List.of("*"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type"));
+        configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration("/api/**", configuration);
         return source;
     }
 }

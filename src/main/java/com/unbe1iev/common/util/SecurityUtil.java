@@ -1,6 +1,7 @@
 package com.unbe1iev.common.util;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -11,6 +12,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import java.security.Principal;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -29,6 +31,8 @@ public class SecurityUtil {
     public static final String CREATOR_ROLE = "creator";
 
     private static final String CREATOR_USER = "creatorUser";
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private SecurityUtil() {
     }
@@ -85,14 +89,22 @@ public class SecurityUtil {
     }
 
     public static Set<String> getAuthorities(Map<String, Object> claims) {
-        if (claims.get(CLAIM_REALM_ACCESS) == null || ((Map<?, ?>) claims.get(CLAIM_REALM_ACCESS)).get(REALM_ACCESS_ROLES) == null) {
-            return Collections.emptySet();
+        try {
+            if (claims.get(CLAIM_REALM_ACCESS) != null) {
+                JsonNode realmAccessNode = objectMapper.convertValue(claims.get(CLAIM_REALM_ACCESS), JsonNode.class);
+                JsonNode rolesNode = realmAccessNode.get(REALM_ACCESS_ROLES);
+                if (rolesNode != null) {
+                    Set<String> roles = StreamSupport.stream(rolesNode.spliterator(), false)
+                            .map(JsonNode::asText)
+                            .collect(Collectors.toSet());
+                    log.debug("Extracted roles from JWT claims: {}", roles);
+                    return roles;
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error extracting authorities from JWT claims", e);
         }
-
-        JsonNode rolesNode = (JsonNode) ((Map<?, ?>) claims.get(CLAIM_REALM_ACCESS)).get(REALM_ACCESS_ROLES);
-        return StreamSupport.stream(rolesNode.spliterator(), false)
-                .map(JsonNode::asText)
-                .collect(Collectors.toSet());
+        return Collections.emptySet();
     }
 
     private static String getRealmFromJwt(Jwt principal) {
@@ -110,6 +122,14 @@ public class SecurityUtil {
             return "Bearer " + jwt.getTokenValue();
         }
         return null;
+    }
+
+    public static Optional<String> getClientId() {
+        return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
+                .filter(auth -> auth instanceof JwtAuthenticationToken)
+                .map(auth -> ((JwtAuthenticationToken) auth).getTokenAttributes().get("clientId"))
+                .map(Object::toString)
+                .filter(clientId -> !clientId.isEmpty());
     }
 
     public static void workASCreatorUser(String domain) {

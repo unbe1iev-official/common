@@ -12,6 +12,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 @Aspect
@@ -23,7 +27,17 @@ public class DomainCheckerAspect {
     private final DomainHolder domainHolder;
     private final DomainCheckerProperties domainCheckerProperties;
 
-    private static final String DOMAIN = "unbe1iev";
+    private static final String REQUIRED_DOMAIN = "unbe1iev";
+    private List<String> combinedNotRequired = new ArrayList<>();
+
+    @Value("${domain.local-not-required:}")
+    private List<String> localNotRequired;
+
+    @PostConstruct
+    public void mergeConfigurations() {
+        combinedNotRequired.addAll(domainCheckerProperties.getNotRequired());
+        combinedNotRequired.addAll(localNotRequired);
+    }
 
     @Pointcut("within(@org.springframework.web.bind.annotation.RestController *)")
     public void beanAnnotatedWithRestController() {
@@ -38,7 +52,7 @@ public class DomainCheckerAspect {
 
     private void throwIfNotInDomainContext(Signature signature) {
         String domain = domainHolder.getDomain();
-        if (domainIsRequired(signature) && (!StringUtils.hasText(domain) || !DOMAIN.equals(domain))) {
+        if (domainIsRequired(signature) && (!StringUtils.hasText(domain) || !REQUIRED_DOMAIN.equals(domain))) {
             throw new AccessDeniedException("Domain is required and must match the predefined domain!");
         }
     }

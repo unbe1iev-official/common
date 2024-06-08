@@ -1,7 +1,6 @@
 package com.unbe1iev.common.security;
 
 import com.unbe1iev.common.util.SecurityUtil;
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
@@ -22,7 +21,9 @@ public class CustomJwtAuthenticationConverter extends JwtAuthenticationConverter
     private static class CustomGrantedAuthoritiesConverter implements Converter<Jwt, Collection<GrantedAuthority>> {
         @Override
         public Collection<GrantedAuthority> convert(Jwt jwt) {
-            return SecurityUtil.getAuthorities(jwt.getClaims()).stream()
+            Collection<String> authorities = SecurityUtil.getAuthorities(jwt.getClaims());
+            log.info("Extracted authorities from JWT: {}", authorities);
+            return authorities.stream()
                     .map(SimpleGrantedAuthority::new)
                     .collect(Collectors.toSet());
         }

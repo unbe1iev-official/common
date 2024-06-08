@@ -26,7 +26,7 @@ public class CustomTrustedIssuerJwtAuthenticationManagerResolver implements Auth
     public AuthenticationManager resolve(String issuer) {
         if (this.trustedIssuer.test(issuer)) {
             AuthenticationManager authenticationManager = this.authenticationManagers.computeIfAbsent(issuer,
-                    k -> {
+                    _ -> {
                         log.debug("Constructing AuthenticationManager");
                         JwtDecoder jwtDecoder = JwtDecoders.fromIssuerLocation(issuer);
                         JwtAuthenticationProvider provider = new JwtAuthenticationProvider(jwtDecoder);
