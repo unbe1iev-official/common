@@ -60,7 +60,7 @@ public class OAuth2ResourceServerSecurityConfiguration {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api-docs/**", "/v3/api-docs/**", "/swagger-ui*/**", "/actuator/**").permitAll()
                         .requestMatchers(permitAllMatchers).permitAll()
-                        .requestMatchers("/api/**").hasAnyRole(CREATOR_ROLE, ADMIN_ROLE)
+                        .requestMatchers("/api*/**").hasAnyRole(CREATOR_ROLE, ADMIN_ROLE)
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2.authenticationManagerResolver(authenticationManagerResolver));
 
